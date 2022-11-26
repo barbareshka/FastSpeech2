@@ -9,6 +9,7 @@ import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
 
+import .symbols
 from .funcs import get_mask_from_lengths, pad
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -21,8 +22,6 @@ PAD_WORD = "<blank>"
 UNK_WORD = "<unk>"
 BOS_WORD = "<s>"
 EOS_WORD = "</s>"
-
-import symbols
 
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
