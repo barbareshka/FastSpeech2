@@ -10,7 +10,7 @@ import numpy as np
 import torch.nn.functional as F
 
 import .symbols
-from .funcs import get_mask_from_lengths, pad
+from .funcs import get_mask_from_lengths, pad, get_sinusoid_encoding_table
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PAD = 0
