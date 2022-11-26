@@ -56,29 +56,25 @@ class FastSpeech2(nn.Module):
         d_control=1.0,
     ):
         src_masks = get_mask_from_lengths(src_lens, max_src_len)
-        mel_masks = (
-            get_mask_from_lengths(mel_lens, max_mel_len)
-            if mel_lens is not None
-            else None
-        )
+        mel_masks = None
+        if mel_lens is not None:
+            mel_masks = get_mask_from_lengths(mel_lens, max_mel_len)
 
-        output = self.encoder(texts, src_masks)
+        encoded_output = self.encoder(texts, src_masks)
 
         if self.speaker_emb is not None:
-            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
-                -1, max_src_len, -1
-            )
+            encoded_output = encoded_output + self.speaker_emb(speakers).unsqueeze(1).expand(-1, max_src_len, -1)
 
         (
-            output,
+            adapted_output,
             p_predictions,
             e_predictions,
             log_d_predictions,
             d_rounded,
-            mel_lens,
-            mel_masks,
+            adapted_mel_lens,
+            adapted_mel_masks,
         ) = self.variance_adaptor(
-            output,
+            encoded_output,
             src_masks,
             mel_masks,
             max_mel_len,
@@ -90,13 +86,13 @@ class FastSpeech2(nn.Module):
             d_control,
         )
 
-        output, mel_masks = self.decoder(output, mel_masks)
-        output = self.mel_linear(output)
+        decoded_output, decoded_mel_masks = self.decoder(adapted, adapted_mel_masks)
+        linear_output = self.mel_linear(decoded_output)
 
-        postnet_output = self.postnet(output) + output
+        postnet_output = self.postnet(linear_output) + linear_output
 
         return (
-            output,
+            linear_output,
             postnet_output,
             p_predictions,
             e_predictions,
