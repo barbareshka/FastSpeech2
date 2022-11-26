@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .transformer import Encoder, Decoder, PostNet
 from .support import VarianceAdaptor, Encoder, Decoder, PostNet
 from .funcs import get_mask_from_lengths
 
