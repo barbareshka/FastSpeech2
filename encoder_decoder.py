@@ -18,11 +18,6 @@ UNK = 1
 BOS = 2
 EOS = 3
 
-PAD_WORD = "<blank>"
-UNK_WORD = "<unk>"
-BOS_WORD = "<s>"
-EOS_WORD = "</s>"
-
 
 class ScaledDotProductAttention(nn.Module):
     """ Scaled Dot-Product Attention """
