@@ -8,7 +8,7 @@ from text.symbols import symbols
 
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
-    def angle(pos, hid_idx):
+    def angle(pos, idx):
         return pos / np.power(10000, 2 * (idx // 2) / d_hid)
 
     def angle_vec(pos):
