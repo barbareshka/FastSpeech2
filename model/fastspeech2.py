@@ -14,7 +14,6 @@ class FastSpeech2(nn.Module):
     def __init__(self, preprocess_config, model_config):
         super(FastSpeech2, self).__init__()
         self.config = model_config
-
         self.encoder = Encoder(model_config)
         self.adaptor = VarianceAdaptor(preprocess_config, model_config)
         self.decoder = Decoder(model_config)
