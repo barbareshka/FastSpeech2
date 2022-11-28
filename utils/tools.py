@@ -1,12 +1,11 @@
 import os
 import json
-
+import matplotlib
+import numpy as np
+from matplotlib import pyplot as plt
 import torch
 import torch.nn.functional as F
-import numpy as np
-import matplotlib
 from scipy.io import wavfile
-from matplotlib import pyplot as plt
 
 
 matplotlib.use("Agg")
@@ -65,7 +64,7 @@ def to_device(data, device):
 
         return (ids, raw_texts, speakers, texts, src_lens, max_src_len)
 
-
+###function only for prepare data and training
 def log(
     logger, step=None, losses=None, fig=None, audio=None, sampling_rate=22050, tag=""
 ):
@@ -87,25 +86,24 @@ def log(
             sample_rate=sampling_rate,
         )
 
-
+###we had something similar during seminar
 def get_mask_from_lengths(lengths, max_len=None):
-    batch_size = lengths.shape[0]
+    b_sz = lengths.shape[0]
     if max_len is None:
         max_len = torch.max(lengths).item()
 
-    ids = torch.arange(0, max_len).unsqueeze(0).expand(batch_size, -1).to(device)
-    mask = ids >= lengths.unsqueeze(1).expand(-1, max_len)
-
+    pos = torch.arange(0, max_len).unsqueeze(0).expand(b_sz, -1).to(device)
+    mask = pos >= lengths.unsqueeze(1).expand(-1, max_len)
     return mask
 
 
 def expand(values, durations):
     out = list()
-    for value, d in zip(values, durations):
-        out += [value] * max(0, int(d))
+    for v, d in zip(values, durations):
+        out += [v] * max(0, int(d))
     return np.array(out)
 
-
+###function only for prepare data and training
 def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_config):
 
     basename = targets[0][0]
@@ -160,7 +158,7 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
 
     return fig, wav_reconstruction, wav_prediction, basename
 
-
+###function only for prepare data and training
 def synth_samples(targets, predictions, vocoder, model_config, preprocess_config, path):
 
     basenames = targets[0]
@@ -209,7 +207,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
     for wav, basename in zip(wav_predictions, basenames):
         wavfile.write(os.path.join(path, "{}.wav".format(basename)), sampling_rate, wav)
 
-
+###function only for prepare data and training
 def plot_mel(data, stats, titles):
     fig, axes = plt.subplots(len(data), 1, squeeze=False)
     if titles is None:
@@ -261,7 +259,7 @@ def plot_mel(data, stats, titles):
 
     return fig
 
-
+###function only for prepare data and training
 def pad_1D(inputs, PAD=0):
     def pad_data(x, length, PAD):
         x_padded = np.pad(
@@ -274,7 +272,7 @@ def pad_1D(inputs, PAD=0):
 
     return padded
 
-
+###function only for prepare data and training
 def pad_2D(inputs, maxlen=None):
     def pad(x, max_len):
         PAD = 0
@@ -298,20 +296,16 @@ def pad_2D(inputs, maxlen=None):
 
 def pad(input_ele, mel_max_length=None):
     if mel_max_length:
-        max_len = mel_max_length
+        m_len = mel_max_length
     else:
-        max_len = max([input_ele[i].size(0) for i in range(len(input_ele))])
+        m_len = max([input_ele[i].size(0) for i in range(len(input_ele))])
 
-    out_list = list()
-    for i, batch in enumerate(input_ele):
-        if len(batch.shape) == 1:
-            one_batch_padded = F.pad(
-                batch, (0, max_len - batch.size(0)), "constant", 0.0
-            )
-        elif len(batch.shape) == 2:
-            one_batch_padded = F.pad(
-                batch, (0, 0, 0, max_len - batch.size(0)), "constant", 0.0
-            )
-        out_list.append(one_batch_padded)
-    out_padded = torch.stack(out_list)
-    return out_padded
+    out = list()
+    for i, b in enumerate(input_ele):
+        if len(b.shape) == 1:
+            padded = F.pad(b, (0, m_len - b.size(0)), "constant", 0.0)
+        elif len(b.shape) == 2:
+            padded = F.pad(b, (0, 0, 0, m_len - b.size(0)), "constant", 0.0)
+        out.append(padded)
+    out = torch.stack(out)
+    return out
