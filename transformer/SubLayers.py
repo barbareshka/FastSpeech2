@@ -31,7 +31,7 @@ class MultiHeadAttention(nn.Module):
         q = q.permute(2, 0, 1, 3).contiguous().view(-1, len_q, d_k)
         k = k.permute(2, 0, 1, 3).contiguous().view(-1, len_k, d_k)
         v = v.permute(2, 0, 1, 3).contiguous().view(-1, len_v, d_v)
-        mask = mask.repeat(n_head, 1, 1)  # (n*b) x .. x ..
+        mask = mask.repeat(n_head, 1, 1)
         out, attn = self.attn(q, k, v, mask=mask)
         out = out.view(n_head, sz_b, len_q, d_v)
         out = (out.permute(1, 2, 0, 3).contiguous().view(sz_b, len_q, -1))
@@ -56,7 +56,7 @@ class PositionwiseFeedForward(nn.Module):
             padding=(kernel_size[1] - 1) // 2,
         )
 
-        self.layer_norm = nn.LayerNorm(d_in)
+        self.norm = nn.LayerNorm(d_in)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -65,5 +65,5 @@ class PositionwiseFeedForward(nn.Module):
         out = self.w_2(F.relu(self.w_1(out)))
         out = out.transpose(1, 2)
         out = self.dropout(out)
-        out = self.layer_norm(out + start)
+        out = self.norm(out + start)
         return out
