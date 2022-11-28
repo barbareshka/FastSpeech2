@@ -1,4 +1,5 @@
 """ from https://github.com/keithito/tacotron """
+"""Cmudict class is a thin wrapper around CMUDict data """
 
 import re
 
@@ -91,11 +92,10 @@ valid_symbols = [
 ]
 
 _valid_symbol_set = set(valid_symbols)
+_alt_re = re.compile(r"\([0-9]+\)")
 
 
 class CMUDict:
-    """Thin wrapper around CMUDict data. http://www.speech.cs.cmu.edu/cgi-bin/cmudict"""
-
     def __init__(self, file_or_path, keep_ambiguous=True):
         if isinstance(file_or_path, str):
             with open(file_or_path, encoding="latin-1") as f:
@@ -110,11 +110,7 @@ class CMUDict:
         return len(self._entries)
 
     def lookup(self, word):
-        """Returns list of ARPAbet pronunciations of the given word."""
         return self._entries.get(word.upper())
-
-
-_alt_re = re.compile(r"\([0-9]+\)")
 
 
 def _parse_cmudict(file):
