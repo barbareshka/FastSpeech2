@@ -13,9 +13,9 @@ class FFTBlock(torch.nn.Module):
         self.ffn = PositionwiseFeedForward(d_model, d_inner, kernel_size, dropout=dropout)
 
     def forward(self, enc_input, mask=None, slf_attn_mask=None):
-        enc_out, enc_attn = self.slf_attn(enc_input, enc_input, enc_input, mask=slf_attn_mask)
+        enc_out, enc_attn = self.attn(enc_input, enc_input, enc_input, mask=slf_attn_mask)
         enc_out = enc_out.masked_fill(mask.unsqueeze(-1), 0)
-        enc_out = self.pos_ffn(enc_out)
+        enc_out = self.ffn(enc_out)
         enc_out = enc_out.masked_fill(mask.unsqueeze(-1), 0)
         return enc_out, enc_attn
 
