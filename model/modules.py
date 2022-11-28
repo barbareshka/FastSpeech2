@@ -38,10 +38,10 @@ class Conv(nn.Module):
         )
 
     def forward(self, x):
-        modified = x.contiguous().transpose(1, 2)
-        x = self.conv(modified)
-        output = x.contiguous().transpose(1, 2)
-        return output
+        out = x.contiguous().transpose(1, 2)
+        out = self.conv(out)
+        out = out.contiguous().transpose(1, 2)
+        return out
 
 
 class VarianceAdaptor(nn.Module):
@@ -52,12 +52,10 @@ class VarianceAdaptor(nn.Module):
         self.p_pred = VariancePredictor(model_config)
         self.e_pred = VariancePredictor(model_config)
         self.lr = LengthRegulator()
-
         self.p_fl = preprocess_config["preprocessing"]["pitch"]["feature"]
         self.e_fl = preprocess_config["preprocessing"]["energy"]["feature"]
         assert self.p_fl in ["phoneme_level", "frame_level"]
         assert self.e_fl in ["phoneme_level", "frame_level"]
-
         p_quant = model_config["variance_embedding"]["pitch_quantization"]
         e_quant = model_config["variance_embedding"]["energy_quantization"]
         n_bins = model_config["variance_embedding"]["n_bins"]
@@ -97,7 +95,7 @@ class VarianceAdaptor(nn.Module):
         return pred, emb
 
     def get_energy_embedding(self, x, target, mask, control):
-        pred = self.energy_predictor(x, mask)
+        pred = self.e_pred(x, mask)
         if target is None:
             pred = pred * control
             emb = self.e_emb(torch.bucketize(pred, self.e_bins))
@@ -133,7 +131,7 @@ class VarianceAdaptor(nn.Module):
             d_rounded = duration_target
         else:
             d_rounded = torch.clamp((torch.round(torch.exp(log_d_pred) - 1) * d_control), min=0)
-            x, mel_len = self.length_regulator(x, d_rounded, max_len)
+            x, mel_len = self.lr(x, d_rounded, max_len)
             mel_mask = get_mask_from_lengths(mel_len)
 
         if self.p_fl == "frame_level":
@@ -141,7 +139,7 @@ class VarianceAdaptor(nn.Module):
             x += p_emb
         if self.e_fl == "frame_level":
             e_pred, e_emb = self.get_energy_embedding(x, energy_target, mel_mask, p_control)
-            x += energy_embedding
+            x += e_emb
 
         return (
             x,
@@ -162,10 +160,9 @@ class LengthRegulator(nn.Module):
         out = list()
         mel_len = list()
         for b, tar in zip(x, duration):
-            expaned = self.expand(b, tar)
+            expanded = self.expand(b, tar)
             out.append(expanded)
             mel_len.append(expanded.shape[0])
-
         if max_len is None:
             out = pad(out)
         else:
@@ -174,7 +171,6 @@ class LengthRegulator(nn.Module):
 
     def expand(self, b, pred):
         out = list()
-
         for i, j in enumerate(b):
             sz = predicted[i].item()
             out.append(j.expand(max(int(sz), 0), -1))
