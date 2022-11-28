@@ -1,3 +1,4 @@
+""" from https://github.com/keithito/tacotron """
 initials = [
     "b",
     "c",
