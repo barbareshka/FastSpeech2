@@ -11,11 +11,6 @@ _arpabet = ["@" + s for s in cmudict.valid_symbols]
 _pinyin = ["@" + s for s in pinyin.valid_symbols]
 
 symbols = (
-    [_pad]
-    + list(_special)
-    + list(_punctuation)
-    + list(_letters)
-    + _arpabet
-    + _pinyin
-    + _silences
+    [_pad] + list(_special) + list(_punctuation) 
+    + list(_letters) + _arpabet + _pinyin + _silences
 )
