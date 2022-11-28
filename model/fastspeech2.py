@@ -23,7 +23,6 @@ class FastSpeech2(nn.Module):
             preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
         )
         self.postnet = PostNet()
-
         self.speaker_emb = None
 
     def forward(
@@ -50,7 +49,7 @@ class FastSpeech2(nn.Module):
 
         (
             out, p_pred, e_pred, log_d_pred, d_rounded, mel_lens, mel_masks,
-        ) = self.variance_adaptor(
+        ) = self.adaptor(
             encoded, src_masks, mel_masks, max_mel_len, p_targets, e_targets,
             d_targets, p_control, e_control, d_control,
         )
