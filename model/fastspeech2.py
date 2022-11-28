@@ -11,8 +11,6 @@ from utils.tools import get_mask_from_lengths
 
 
 class FastSpeech2(nn.Module):
-    """ FastSpeech2 """
-
     def __init__(self, preprocess_config, model_config):
         super(FastSpeech2, self).__init__()
         self.config = model_config
@@ -63,14 +61,6 @@ class FastSpeech2(nn.Module):
         p_out = self.postnet(out) + out
 
         return (
-            out,
-            p_out,
-            p_pred,
-            e_pred,
-            log_d_pred,
-            d_rounded,
-            src_masks,
-            mel_masks,
-            src_lens,
-            mel_lens,
+            out, p_out, p_pred, e_pred, log_d_pred, d_rounded,
+            src_masks, mel_masks, src_lens, mel_lens,
         )
